@@ -283,7 +283,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                               ]),
                               Text(f.description),
                               if (f.suggestion.isNotEmpty)
-                                Text('💡 ${f.suggestion}', style: const TextStyle(color: kMuted)),
+                                Text(f.suggestion, style: const TextStyle(color: kMuted)),
                             ]),
                           )),
                     ],
