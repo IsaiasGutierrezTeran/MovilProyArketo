@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/api.dart';
+import '../../core/auth.dart';
 import '../../core/models.dart';
 import '../../core/theme.dart';
 
@@ -49,6 +50,71 @@ class _BudgetScreenState extends State<BudgetScreen> {
     if (created == true) _load();
   }
 
+  /// HU-13 — enviar a revisión (autor) o revisar (ingeniero).
+  Future<void> _submit(Budget b) async {
+    try {
+      await _api.post('/budgets/${b.id}/submit/', {});
+      _load();
+    } on ApiError catch (e) {
+      if (mounted) { ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message))); }
+    }
+  }
+
+  Future<void> _review(Budget b, String decision) async {
+    final ctrl = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: kSurface,
+        title: Text({'approved': 'Aprobar', 'observed': 'Observar', 'rejected': 'Rechazar'}[decision]!),
+        content: TextField(controller: ctrl, maxLines: 3,
+            decoration: const InputDecoration(labelText: 'Comentarios')),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Confirmar')),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    if (decision != 'approved' && ctrl.text.trim().isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Agrega un comentario para observar/rechazar.')));
+      }
+      return;
+    }
+    try {
+      await _api.post('/budgets/${b.id}/review/', {'decision': decision, 'comments': ctrl.text.trim()});
+      _load();
+    } on ApiError catch (e) {
+      if (mounted) { ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message))); }
+    }
+  }
+
+  /// Botones de acción de un presupuesto según rol y estado (HU-13).
+  List<Widget> _actions(Budget b) {
+    final isEngineer = context.read<AuthService>().user?.hasRole(['ingeniero']) ?? false;
+    final children = <Widget>[];
+    if (b.status == 'draft' || b.status == 'observed') {
+      children.add(OutlinedButton(onPressed: () => _submit(b), child: const Text('Enviar a revisión')));
+    }
+    if (isEngineer && b.status == 'submitted') {
+      children.addAll([
+        FilledButton(onPressed: () => _review(b, 'approved'), child: const Text('Aprobar')),
+        OutlinedButton(onPressed: () => _review(b, 'observed'), child: const Text('Observar')),
+        OutlinedButton(
+          onPressed: () => _review(b, 'rejected'),
+          style: OutlinedButton.styleFrom(foregroundColor: kDanger),
+          child: const Text('Rechazar')),
+      ]);
+    }
+    if (children.isEmpty) return const [];
+    return [
+      const SizedBox(height: 10),
+      Wrap(spacing: 8, runSpacing: 8, children: children),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,6 +143,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                           const SizedBox(height: 4),
                           Text('Materiales: ${b.materialsCost} · Mano de obra: ${b.laborCost} (${b.laborPeople} pers.)',
                               style: const TextStyle(color: kMuted)),
+                          ..._actions(b),
                         ]),
                       ))),
                 ],
