@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/api.dart';
+import '../../core/auth.dart';
 import '../../core/models.dart';
 import '../../core/theme.dart';
 
@@ -94,6 +95,9 @@ class _CollaborationScreenState extends State<CollaborationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Invitar colaboradores requiere plan Enterprise (superadmin siempre puede).
+    final me = context.read<AuthService>().user;
+    final canInvite = me?.role == 'superadmin' || me?.subscriptionPlan == 'enterprise';
     return Scaffold(
       appBar: AppBar(title: const Text('Colaboración')),
       body: _loading
@@ -102,44 +106,51 @@ class _CollaborationScreenState extends State<CollaborationScreen> {
               padding: const EdgeInsets.all(16),
               children: [
                 const Text('Colaboradores', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                const Text('Elige un usuario e invítalo; deberá aceptar para colaborar.',
-                    style: TextStyle(color: kMuted, fontSize: 12)),
-                const SizedBox(height: 8),
-                Row(children: [
-                  Expanded(
-                    child: _assignable.isEmpty
-                        ? const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 14),
-                            child: Text('No hay usuarios disponibles para invitar.', style: TextStyle(color: kMuted)))
-                        : DropdownButtonFormField<int>(
-                            initialValue: _inviteUserId,
-                            isExpanded: true,
-                            dropdownColor: kSurface2,
-                            decoration: const InputDecoration(labelText: 'Elige un usuario'),
-                            items: _assignable
-                                .map((u) => DropdownMenuItem(
-                                      value: u.id,
-                                      child: Text('${u.fullName.isEmpty ? u.email : u.fullName} · ${u.role}',
-                                          overflow: TextOverflow.ellipsis),
-                                    ))
-                                .toList(),
-                            onChanged: (v) => setState(() => _inviteUserId = v),
-                          ),
+                if (canInvite) ...[
+                  const Text('Elige un usuario e invítalo; deberá aceptar para colaborar.',
+                      style: TextStyle(color: kMuted, fontSize: 12)),
+                  const SizedBox(height: 8),
+                  Row(children: [
+                    Expanded(
+                      child: _assignable.isEmpty
+                          ? const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 14),
+                              child: Text('No hay usuarios disponibles para invitar.', style: TextStyle(color: kMuted)))
+                          : DropdownButtonFormField<int>(
+                              initialValue: _inviteUserId,
+                              isExpanded: true,
+                              dropdownColor: kSurface2,
+                              decoration: const InputDecoration(labelText: 'Elige un usuario'),
+                              items: _assignable
+                                  .map((u) => DropdownMenuItem(
+                                        value: u.id,
+                                        child: Text('${u.fullName.isEmpty ? u.email : u.fullName} · ${u.role}',
+                                            overflow: TextOverflow.ellipsis),
+                                      ))
+                                  .toList(),
+                              onChanged: (v) => setState(() => _inviteUserId = v),
+                            ),
+                    ),
+                    const SizedBox(width: 8),
+                    DropdownButton<String>(
+                      value: _role, dropdownColor: kSurface2, underline: const SizedBox.shrink(),
+                      items: const [
+                        DropdownMenuItem(value: 'editor', child: Text('Editor')),
+                        DropdownMenuItem(value: 'viewer', child: Text('Lector')),
+                      ],
+                      onChanged: (v) => setState(() => _role = v ?? 'editor'),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.person_add_alt_1),
+                      onPressed: _inviteUserId == null ? null : _invite,
+                    ),
+                  ]),
+                ] else
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: Text('La colaboración requiere el plan Enterprise. Mejora tu plan para invitar colaboradores.',
+                        style: TextStyle(color: kMuted, fontSize: 13)),
                   ),
-                  const SizedBox(width: 8),
-                  DropdownButton<String>(
-                    value: _role, dropdownColor: kSurface2, underline: const SizedBox.shrink(),
-                    items: const [
-                      DropdownMenuItem(value: 'editor', child: Text('Editor')),
-                      DropdownMenuItem(value: 'viewer', child: Text('Lector')),
-                    ],
-                    onChanged: (v) => setState(() => _role = v ?? 'editor'),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.person_add_alt_1),
-                    onPressed: _inviteUserId == null ? null : _invite,
-                  ),
-                ]),
                 const SizedBox(height: 8),
                 ..._members.map((m) => Card(child: ListTile(
                       leading: const Icon(Icons.person_outline),

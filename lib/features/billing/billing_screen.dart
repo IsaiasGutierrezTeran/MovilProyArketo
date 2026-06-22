@@ -97,7 +97,7 @@ class _BillingScreenState extends State<BillingScreen> {
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Row(children: [
                         Expanded(child: Text(p.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700))),
-                        Text('\$${p.price}/${p.interval}', style: const TextStyle(color: kPrimary2, fontWeight: FontWeight.w700)),
+                        Text('Bs ${p.price}/${p.interval == 'year' ? 'año' : 'mes'}', style: const TextStyle(color: kPrimary2, fontWeight: FontWeight.w700)),
                       ]),
                       if (p.features.isNotEmpty) ...[
                         const SizedBox(height: 8),
