@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/api.dart';
+import '../../core/auth.dart';
 import '../../core/models.dart';
 import '../../core/theme.dart';
 
@@ -48,6 +49,7 @@ class _BillingScreenState extends State<BillingScreen> {
         await launchUrl(Uri.parse(checkoutUrl), mode: LaunchMode.externalApplication);
       }
       await _load();
+      if (mounted) await context.read<AuthService>().refreshUser();  // refleja el nuevo plan
       _snack(checkoutUrl != null ? 'Completa el pago en el navegador.' : 'Suscripción activada.');
     } on ApiError catch (e) {
       _snack(e.message);
@@ -60,6 +62,7 @@ class _BillingScreenState extends State<BillingScreen> {
     try {
       await _api.post('/billing/cancel', {});
       await _load();
+      if (mounted) await context.read<AuthService>().refreshUser();
       _snack('Suscripción cancelada.');
     } on ApiError catch (e) {
       _snack(e.message);

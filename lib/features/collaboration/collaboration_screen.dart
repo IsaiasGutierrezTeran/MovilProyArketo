@@ -95,9 +95,11 @@ class _CollaborationScreenState extends State<CollaborationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Invitar colaboradores requiere plan Enterprise (superadmin siempre puede).
+    // Invitar colaboradores requiere plan Pro o superior (superadmin siempre puede).
     final me = context.read<AuthService>().user;
-    final canInvite = me?.role == 'superadmin' || me?.subscriptionPlan == 'enterprise';
+    final canInvite = me?.role == 'superadmin' ||
+        me?.subscriptionPlan == 'pro' ||
+        me?.subscriptionPlan == 'enterprise';
     return Scaffold(
       appBar: AppBar(title: const Text('Colaboración')),
       body: _loading
@@ -148,7 +150,7 @@ class _CollaborationScreenState extends State<CollaborationScreen> {
                 ] else
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 8),
-                    child: Text('La colaboración requiere el plan Enterprise. Mejora tu plan para invitar colaboradores.',
+                    child: Text('La colaboración requiere el plan Pro o superior. Mejora tu plan para invitar colaboradores.',
                         style: TextStyle(color: kMuted, fontSize: 13)),
                   ),
                 const SizedBox(height: 8),

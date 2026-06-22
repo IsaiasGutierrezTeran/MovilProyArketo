@@ -45,6 +45,14 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Refresca el usuario desde /auth/me (plan/rol actuales, p. ej. tras suscribir).
+  Future<void> refreshUser() async {
+    try {
+      user = User.fromJson(await api.get('/auth/me'));
+      notifyListeners();
+    } catch (_) {/* mantiene el usuario actual */}
+  }
+
   Future<void> logout() async {
     final r = await tokens.refresh;
     if (r != null) {
