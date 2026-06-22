@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/api.dart';
+import '../../core/auth.dart';
 import '../../core/models.dart';
 import '../../core/theme.dart';
 
@@ -152,6 +153,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Diseñar/modelar (subir plano, generar/importar 3D) es exclusivo del arquitecto.
+    final canDesign = context.read<AuthService>().user?.hasRole(['arquitecto']) ?? false;
     return Scaffold(
       appBar: AppBar(title: Text(_project?.name ?? 'Proyecto'), actions: [
         IconButton(
@@ -178,13 +181,14 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                   Expanded(child: _section('Modelo 3D')),
                   if (_current?.glbUrl != null)
                     IconButton(tooltip: 'Exportar .glb', icon: const Icon(Icons.download_outlined), onPressed: _exportGlb),
-                  IconButton(
-                    tooltip: 'Importar .glb',
-                    icon: _importing
-                        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                        : const Icon(Icons.upload_file_outlined),
-                    onPressed: _importing ? null : _importGlb,
-                  ),
+                  if (canDesign)
+                    IconButton(
+                      tooltip: 'Importar .glb',
+                      icon: _importing
+                          ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                          : const Icon(Icons.upload_file_outlined),
+                      onPressed: _importing ? null : _importGlb,
+                    ),
                 ]),
                 Card(child: Padding(
                   padding: const EdgeInsets.all(12),
@@ -214,37 +218,45 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
 
                 Row(children: [
                   Expanded(child: _section('Planos')),
-                  const Text('Detector ', style: TextStyle(color: kMuted, fontSize: 12)),
-                  DropdownButton<String>(
-                    value: _detector,
-                    dropdownColor: kSurface2,
-                    underline: const SizedBox.shrink(),
-                    items: const [
-                      DropdownMenuItem(value: 'mock', child: Text('Mock')),
-                      DropdownMenuItem(value: 'maskrcnn', child: Text('Mask R-CNN')),
-                    ],
-                    onChanged: (v) => setState(() => _detector = v ?? 'mock'),
-                  ),
+                  if (canDesign) ...[
+                    const Text('Detector ', style: TextStyle(color: kMuted, fontSize: 12)),
+                    DropdownButton<String>(
+                      value: _detector,
+                      dropdownColor: kSurface2,
+                      underline: const SizedBox.shrink(),
+                      items: const [
+                        DropdownMenuItem(value: 'mock', child: Text('Mock')),
+                        DropdownMenuItem(value: 'maskrcnn', child: Text('Mask R-CNN')),
+                      ],
+                      onChanged: (v) => setState(() => _detector = v ?? 'mock'),
+                    ),
+                  ],
                 ]),
-                const SizedBox(height: 4),
-                SizedBox(width: double.infinity, child: OutlinedButton.icon(
-                  onPressed: _uploading ? null : _pickUploadSource,
-                  icon: _uploading
-                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Icon(Icons.add_a_photo_outlined),
-                  label: Text(_uploading ? 'Subiendo…' : 'Subir / capturar plano'),
-                )),
+                if (canDesign) ...[
+                  const SizedBox(height: 4),
+                  SizedBox(width: double.infinity, child: OutlinedButton.icon(
+                    onPressed: _uploading ? null : _pickUploadSource,
+                    icon: _uploading
+                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Icons.add_a_photo_outlined),
+                    label: Text(_uploading ? 'Subiendo…' : 'Subir / capturar plano'),
+                  )),
+                ] else
+                  const Padding(padding: EdgeInsets.only(top: 4, bottom: 4),
+                      child: Text('Solo un arquitecto puede subir planos y generar el 3D.', style: TextStyle(color: kMuted, fontSize: 12))),
                 const SizedBox(height: 8),
                 ..._plans.map((pl) => Card(child: ListTile(
                       leading: const Icon(Icons.description_outlined),
                       title: Text(pl.format.toUpperCase()),
                       subtitle: Text(pl.status),
-                      trailing: _running == pl.id
-                          ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2))
-                          : FilledButton(onPressed: () => _generate(pl), child: const Text('Generar 3D')),
+                      trailing: !canDesign
+                          ? null
+                          : (_running == pl.id
+                              ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2))
+                              : FilledButton(onPressed: () => _generate(pl), child: const Text('Generar 3D'))),
                     ))),
                 if (_plans.isEmpty)
-                  const Padding(padding: EdgeInsets.all(12), child: Text('Sin planos. Sube o captura uno.', style: TextStyle(color: kMuted))),
+                  const Padding(padding: EdgeInsets.all(12), child: Text('Sin planos.', style: TextStyle(color: kMuted))),
                 const SizedBox(height: 16),
 
                 Row(children: [
