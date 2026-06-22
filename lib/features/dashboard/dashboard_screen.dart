@@ -14,20 +14,29 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   late Future<DashboardSummary> _future;
+  int _inviteCount = 0;
 
   @override
   void initState() {
     super.initState();
     _future = _load();
+    _loadInvites();
   }
 
   Future<DashboardSummary> _load() async =>
       DashboardSummary.fromJson(await context.read<Api>().get('/projects/dashboard/'));
 
+  Future<void> _loadInvites() async {
+    try {
+      final r = await context.read<Api>().get('/invitations/');
+      if (mounted) setState(() => _inviteCount = (r as List).length);
+    } catch (_) {}
+  }
+
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      onRefresh: () async => setState(() => _future = _load()),
+      onRefresh: () async { setState(() => _future = _load()); await _loadInvites(); },
       child: FutureBuilder<DashboardSummary>(
         future: _future,
         builder: (context, snap) {
@@ -49,6 +58,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 const SizedBox(width: 12),
                 _Stat('${d.byStatus['draft'] ?? 0}', 'Borradores', kMuted, Icons.edit_note_rounded),
               ]),
+              if (_inviteCount > 0) ...[
+                const SizedBox(height: 16),
+                Card(
+                  color: kPrimary.withValues(alpha: 0.12),
+                  child: ListTile(
+                    leading: const Icon(Icons.mark_email_unread_outlined, color: kPrimary2),
+                    title: Text('Tienes $_inviteCount ${_inviteCount == 1 ? 'invitación pendiente' : 'invitaciones pendientes'}'),
+                    subtitle: const Text('Toca para revisarlas'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.push('/invitations').then((_) { if (mounted) _loadInvites(); }),
+                  ),
+                ),
+              ],
               const SizedBox(height: 20),
               const Text('Recientes', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
               const SizedBox(height: 8),

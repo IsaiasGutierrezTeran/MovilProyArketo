@@ -133,14 +133,43 @@ class MaterialItem {
         categoryName = j['category_name'] ?? '';
 }
 
-/// HU-14 — colaborador de un proyecto.
+/// HU-14 — colaborador (o invitación pendiente) de un proyecto.
 class Member {
   final int id;
-  final String userEmail, role;
+  final String userEmail, userFullName, role, status; // status: pending | accepted
   Member.fromJson(Map<String, dynamic> j)
       : id = j['id'],
         userEmail = j['user_email'] ?? '',
+        userFullName = j['user_full_name'] ?? '',
+        role = j['role'] ?? '',
+        status = j['status'] ?? 'accepted';
+}
+
+/// HU-14 — usuario que se puede invitar a colaborar (para el selector).
+class AssignableUser {
+  final int id;
+  final String email, fullName, role;
+  AssignableUser.fromJson(Map<String, dynamic> j)
+      : id = j['id'],
+        email = j['email'] ?? '',
+        fullName = j['full_name'] ?? '',
         role = j['role'] ?? '';
+}
+
+/// HU-14 — invitación recibida (bandeja del invitado).
+class Invitation {
+  final int id, project;
+  final String projectName, ownerEmail, role, status, createdAt;
+  final String? invitedByEmail;
+  Invitation.fromJson(Map<String, dynamic> j)
+      : id = j['id'],
+        project = j['project'],
+        projectName = j['project_name'] ?? '',
+        ownerEmail = j['owner_email'] ?? '',
+        invitedByEmail = j['invited_by_email'],
+        role = j['role'] ?? '',
+        status = j['status'] ?? '',
+        createdAt = j['created_at'] ?? '';
 }
 
 /// HU-14 — comentario de un proyecto.

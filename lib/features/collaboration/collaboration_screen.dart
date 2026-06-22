@@ -15,9 +15,10 @@ class CollaborationScreen extends StatefulWidget {
 
 class _CollaborationScreenState extends State<CollaborationScreen> {
   List<Member> _members = [];
+  List<AssignableUser> _assignable = [];
   List<Comment> _comments = [];
   bool _loading = true;
-  final _email = TextEditingController();
+  int? _inviteUserId;
   String _role = 'editor';
   final _comment = TextEditingController();
 
@@ -33,6 +34,7 @@ class _CollaborationScreenState extends State<CollaborationScreen> {
     setState(() => _loading = true);
     final m = await _api.get('/projects/${widget.projectId}/members/');
     final c = await _api.page('/comments/', query: {'project': widget.projectId});
+    await _loadAssignable();
     setState(() {
       _members = (m as List).map((e) => Member.fromJson(e)).toList();
       _comments = c.items.map((e) => Comment.fromJson(e)).toList();
@@ -40,12 +42,30 @@ class _CollaborationScreenState extends State<CollaborationScreen> {
     });
   }
 
-  Future<void> _invite() async {
-    if (_email.text.trim().isEmpty) return;
+  Future<void> _loadAssignable() async {
     try {
-      final d = await _api.post('/projects/${widget.projectId}/members/',
-          {'email': _email.text.trim(), 'role': _role});
-      setState(() { _members.add(Member.fromJson(d)); _email.clear(); });
+      final u = await _api.get('/projects/${widget.projectId}/assignable/');
+      _assignable = (u as List).map((e) => AssignableUser.fromJson(e)).toList();
+    } catch (_) {
+      _assignable = [];
+    }
+  }
+
+  /// Recarga miembros + lista de invitables (tras invitar/quitar).
+  Future<void> _reloadTeam() async {
+    final m = await _api.get('/projects/${widget.projectId}/members/');
+    await _loadAssignable();
+    setState(() => _members = (m as List).map((e) => Member.fromJson(e)).toList());
+  }
+
+  Future<void> _invite() async {
+    if (_inviteUserId == null) return;
+    try {
+      await _api.post('/projects/${widget.projectId}/members/',
+          {'user': _inviteUserId, 'role': _role});
+      _inviteUserId = null;
+      await _reloadTeam();
+      _snack('Invitación enviada. El usuario debe aceptarla.');
     } on ApiError catch (e) {
       _snack(e.message);
     }
@@ -54,7 +74,7 @@ class _CollaborationScreenState extends State<CollaborationScreen> {
   Future<void> _removeMember(Member m) async {
     try {
       await _api.delete('/projects/${widget.projectId}/members/${m.id}/');
-      setState(() => _members.removeWhere((x) => x.id == m.id));
+      await _reloadTeam();
     } on ApiError catch (e) {
       _snack(e.message);
     }
@@ -82,10 +102,30 @@ class _CollaborationScreenState extends State<CollaborationScreen> {
               padding: const EdgeInsets.all(16),
               children: [
                 const Text('Colaboradores', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                const Text('Elige un usuario e invítalo; deberá aceptar para colaborar.',
+                    style: TextStyle(color: kMuted, fontSize: 12)),
                 const SizedBox(height: 8),
                 Row(children: [
-                  Expanded(child: TextField(controller: _email, keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(labelText: 'Email del colaborador'))),
+                  Expanded(
+                    child: _assignable.isEmpty
+                        ? const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 14),
+                            child: Text('No hay usuarios disponibles para invitar.', style: TextStyle(color: kMuted)))
+                        : DropdownButtonFormField<int>(
+                            initialValue: _inviteUserId,
+                            isExpanded: true,
+                            dropdownColor: kSurface2,
+                            decoration: const InputDecoration(labelText: 'Elige un usuario'),
+                            items: _assignable
+                                .map((u) => DropdownMenuItem(
+                                      value: u.id,
+                                      child: Text('${u.fullName.isEmpty ? u.email : u.fullName} · ${u.role}',
+                                          overflow: TextOverflow.ellipsis),
+                                    ))
+                                .toList(),
+                            onChanged: (v) => setState(() => _inviteUserId = v),
+                          ),
+                  ),
                   const SizedBox(width: 8),
                   DropdownButton<String>(
                     value: _role, dropdownColor: kSurface2, underline: const SizedBox.shrink(),
@@ -95,12 +135,18 @@ class _CollaborationScreenState extends State<CollaborationScreen> {
                     ],
                     onChanged: (v) => setState(() => _role = v ?? 'editor'),
                   ),
-                  IconButton(icon: const Icon(Icons.person_add_alt_1), onPressed: _invite),
+                  IconButton(
+                    icon: const Icon(Icons.person_add_alt_1),
+                    onPressed: _inviteUserId == null ? null : _invite,
+                  ),
                 ]),
                 const SizedBox(height: 8),
                 ..._members.map((m) => Card(child: ListTile(
                       leading: const Icon(Icons.person_outline),
-                      title: Text(m.userEmail),
+                      title: Text(m.userFullName.isEmpty ? m.userEmail : m.userFullName),
+                      subtitle: m.status == 'pending'
+                          ? const Text('Invitación pendiente', style: TextStyle(color: kMuted, fontSize: 12))
+                          : null,
                       trailing: Row(mainAxisSize: MainAxisSize.min, children: [
                         StatusChip(m.role),
                         IconButton(icon: const Icon(Icons.delete_outline, color: kDanger),

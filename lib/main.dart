@@ -11,6 +11,7 @@ import 'features/auth/register_screen.dart';
 import 'features/billing/billing_screen.dart';
 import 'features/budget/budget_screen.dart';
 import 'features/collaboration/collaboration_screen.dart';
+import 'features/invitations/invitations_screen.dart';
 import 'features/profile/edit_profile_screen.dart';
 import 'features/projects/project_detail_screen.dart';
 import 'features/shell/home_shell.dart';
@@ -73,6 +74,7 @@ class _ArketoAppState extends State<ArketoApp> {
           builder: (_, s) => CollaborationScreen(projectId: int.parse(s.pathParameters['id']!)),
         ),
         GoRoute(path: '/billing', builder: (_, __) => const BillingScreen()),
+        GoRoute(path: '/invitations', builder: (_, __) => const InvitationsScreen()),
         GoRoute(path: '/profile/edit', builder: (_, __) => const EditProfileScreen()),
       ],
     );
