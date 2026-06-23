@@ -137,6 +137,21 @@ class GradientButton extends StatelessWidget {
   }
 }
 
+/// Traduce códigos de estado/severidad del backend a español para mostrarlos.
+String estadoEs(String s) {
+  const map = {
+    'draft': 'Borrador', 'active': 'Activo', 'archived': 'Archivado',
+    'submitted': 'Enviado', 'approved': 'Aprobado', 'observed': 'Observado', 'rejected': 'Rechazado',
+    'canceled': 'Cancelada', 'cancelled': 'Cancelada', 'incomplete': 'Pendiente de pago', 'past_due': 'Vencida',
+    'pending': 'Pendiente', 'accepted': 'Aceptada',
+    'completed': 'Completado', 'processing': 'Procesando', 'error': 'Error', 'failed': 'Falló',
+    'uploaded': 'Subido', 'processed': 'Procesado', 'valid': 'Válido', 'invalid': 'Inválido',
+    'generado': 'Generado', 'generated': 'Generado',
+    'high': 'Alta', 'medium': 'Media', 'low': 'Baja', 'critical': 'Crítica',
+  };
+  return map[s.toLowerCase()] ?? s;
+}
+
 class StatusChip extends StatelessWidget {
   final String label;
   const StatusChip(this.label, {super.key});
@@ -150,7 +165,7 @@ class StatusChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(99),
         border: Border.all(color: c.withValues(alpha: 0.4)),
       ),
-      child: Text(label, style: TextStyle(color: c, fontSize: 11, fontWeight: FontWeight.w700)),
+      child: Text(estadoEs(label), style: TextStyle(color: c, fontSize: 11, fontWeight: FontWeight.w700)),
     );
   }
 }
