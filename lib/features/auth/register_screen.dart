@@ -17,6 +17,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _email = TextEditingController();
   final _phone = TextEditingController();
   final _password = TextEditingController();
+  String _role = 'cliente';
   bool _loading = false;
   String? _error;
 
@@ -28,6 +29,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'password': _password.text,
         'full_name': _name.text.trim(),
         'phone': _phone.text.trim(),
+        'role': _role,
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cuenta creada, inicia sesión.')));
@@ -67,6 +69,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   TextField(controller: _email, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Email')),
                   const SizedBox(height: 12),
                   TextField(controller: _phone, decoration: const InputDecoration(labelText: 'Teléfono (opcional)')),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    initialValue: _role,
+                    dropdownColor: kSurface2,
+                    decoration: const InputDecoration(labelText: 'Rol'),
+                    items: const [
+                      DropdownMenuItem(value: 'cliente', child: Text('Cliente')),
+                      DropdownMenuItem(value: 'arquitecto', child: Text('Arquitecto')),
+                      DropdownMenuItem(value: 'ingeniero', child: Text('Ingeniero')),
+                    ],
+                    onChanged: (v) => setState(() => _role = v ?? 'cliente'),
+                  ),
                   const SizedBox(height: 12),
                   TextField(controller: _password, obscureText: true, decoration: const InputDecoration(labelText: 'Contraseña')),
                   const SizedBox(height: 18),
