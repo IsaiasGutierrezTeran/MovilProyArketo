@@ -8,7 +8,9 @@ import 'core/theme.dart';
 import 'core/token_store.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/register_screen.dart';
+import 'core/models.dart';
 import 'features/billing/billing_screen.dart';
+import 'features/billing/checkout_screen.dart';
 import 'features/budget/budget_screen.dart';
 import 'features/collaboration/collaboration_screen.dart';
 import 'features/invitations/invitations_screen.dart';
@@ -74,6 +76,15 @@ class _ArketoAppState extends State<ArketoApp> {
           builder: (_, s) => CollaborationScreen(projectId: int.parse(s.pathParameters['id']!)),
         ),
         GoRoute(path: '/billing', builder: (_, __) => const BillingScreen()),
+        GoRoute(
+          path: '/billing/checkout',
+          builder: (_, s) {
+            final plan = s.extra;
+            return plan is SubscriptionPlan
+                ? CheckoutScreen(plan: plan)
+                : const Scaffold(body: Center(child: Text('Plan no especificado')));
+          },
+        ),
         GoRoute(path: '/invitations', builder: (_, __) => const InvitationsScreen()),
         GoRoute(path: '/profile/edit', builder: (_, __) => const EditProfileScreen()),
       ],

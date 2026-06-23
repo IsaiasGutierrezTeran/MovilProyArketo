@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -37,6 +38,18 @@ class _BillingScreenState extends State<BillingScreen> {
       _subscription = Subscription.fromJson(await _api.get('/billing/subscription'));
     } catch (_) {/* sin suscripción aún */}
     if (mounted) setState(() => _loading = false);
+  }
+
+  /// Plan de pago -> pantalla de checkout. Plan gratis -> activación directa.
+  Future<void> _choose(SubscriptionPlan plan) async {
+    final price = double.tryParse(plan.price) ?? 0;
+    if (price <= 0) { await _subscribe(plan); return; }
+    final ok = await context.push<bool>('/billing/checkout', extra: plan);
+    if (ok == true && mounted) {
+      await _load();
+      if (mounted) await context.read<AuthService>().refreshUser();
+      _snack('✅ Pago aprobado. Plan activado.');
+    }
   }
 
   Future<void> _subscribe(SubscriptionPlan plan) async {
@@ -115,7 +128,7 @@ class _BillingScreenState extends State<BillingScreen> {
                       ],
                       const SizedBox(height: 12),
                       SizedBox(width: double.infinity, child: FilledButton(
-                        onPressed: (isCurrent || _busyCode != null) ? null : () => _subscribe(p),
+                        onPressed: (isCurrent || _busyCode != null) ? null : () => _choose(p),
                         child: Text(isCurrent ? 'Plan actual' : (_busyCode == p.code ? 'Procesando…' : 'Elegir plan')),
                       )),
                     ]),
