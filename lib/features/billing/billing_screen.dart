@@ -48,7 +48,7 @@ class _BillingScreenState extends State<BillingScreen> {
     if (ok == true && mounted) {
       await _load();
       if (mounted) await context.read<AuthService>().refreshUser();
-      _snack('✅ Pago aprobado. Plan activado.');
+      _snack('Pago aprobado. Plan activado.');
     }
   }
 
