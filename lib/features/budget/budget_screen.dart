@@ -18,6 +18,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
   List<Budget> _budgets = [];
   List<MaterialItem> _materials = [];
   bool _loading = true;
+  int? _modelId; // modelo 3D actual del proyecto (para estimar)
 
   Api get _api => context.read<Api>();
 
@@ -31,11 +32,34 @@ class _BudgetScreenState extends State<BudgetScreen> {
     setState(() => _loading = true);
     final b = await _api.page('/budgets/', query: {'project': widget.projectId});
     final m = await _api.page('/materials/', query: {'page_size': 100});
+    final mods = await _api.page('/models3d/', query: {'project': widget.projectId});
+    int? mid;
+    for (final x in mods.items) {
+      if (x['is_current'] == true) { mid = x['id'] as int?; break; }
+    }
+    mid ??= mods.items.isNotEmpty ? mods.items.first['id'] as int? : null;
     setState(() {
       _budgets = b.items.map((e) => Budget.fromJson(e)).toList();
       _materials = m.items.map((e) => MaterialItem.fromJson(e)).toList();
+      _modelId = mid;
       _loading = false;
     });
+  }
+
+  /// Estima materiales desde la geometría del modelo 3D y crea un borrador (Bs).
+  Future<void> _estimate() async {
+    final mid = _modelId;
+    if (mid == null) return;
+    try {
+      await _api.post('/budgets/estimate/', {'model3d': mid});
+      await _load();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Borrador estimado creado desde el modelo 3D.')));
+      }
+    } on ApiError catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    }
   }
 
   Future<void> _create() async {
@@ -130,6 +154,18 @@ class _BudgetScreenState extends State<BudgetScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
+                  Card(child: ListTile(
+                    leading: const Icon(Icons.calculate_outlined, color: kPrimary2),
+                    title: const Text('Estimar desde el modelo 3D'),
+                    subtitle: Text(_modelId == null
+                        ? 'Genera primero el modelo 3D del proyecto'
+                        : 'Calcula materiales y cantidades automáticamente (Bs)'),
+                    trailing: FilledButton(
+                      onPressed: _modelId == null ? null : _estimate,
+                      child: const Text('Estimar'),
+                    ),
+                  )),
+                  const SizedBox(height: 8),
                   if (_budgets.isEmpty)
                     const Padding(padding: EdgeInsets.all(16), child: Text('Sin presupuestos. Crea el primero.', style: TextStyle(color: kMuted))),
                   ..._budgets.map((b) => Card(child: Padding(
@@ -141,7 +177,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                             StatusChip(b.status),
                           ]),
                           const SizedBox(height: 4),
-                          Text('Materiales: ${b.materialsCost} · Mano de obra: ${b.laborCost} (${b.laborPeople} pers.)',
+                          Text('Materiales: Bs ${b.materialsCost} · Mano de obra: Bs ${b.laborCost} (${b.laborPeople} pers.)',
                               style: const TextStyle(color: kMuted)),
                           ..._actions(b),
                         ]),
@@ -214,7 +250,7 @@ class _NewBudgetSheetState extends State<_NewBudgetSheet> {
                   dropdownColor: kSurface2,
                   items: widget.materials.map((m) => DropdownMenuItem(
                     value: m.id,
-                    child: Text('${m.name} (${m.unitPrice}/${m.unit})', overflow: TextOverflow.ellipsis),
+                    child: Text('${m.name} (Bs ${m.unitPrice}/${m.unit})', overflow: TextOverflow.ellipsis),
                   )).toList(),
                   onChanged: (v) => setState(() => r.material = v),
                 )),
