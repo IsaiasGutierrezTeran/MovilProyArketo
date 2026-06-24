@@ -32,11 +32,15 @@ class Api {
   final TokenStore tokens;
 
   Api(this.tokens) {
-    dio = Dio(BaseOptions(
-      baseUrl: apiBase(),
-      connectTimeout: const Duration(seconds: 20),
-      receiveTimeout: const Duration(seconds: 130), // model generation can be slow
-    ));
+    dio = Dio(
+      BaseOptions(
+        baseUrl: apiBase(),
+        connectTimeout: const Duration(seconds: 20),
+        receiveTimeout: const Duration(
+          seconds: 130,
+        ), // model generation can be slow
+      ),
+    );
     dio.interceptors.add(_AuthInterceptor(tokens, dio));
   }
 
@@ -46,7 +50,9 @@ class Api {
   }
 
   Future<({List items, Map<String, dynamic>? pagination})> page(
-      String path, {Map<String, dynamic>? query}) async {
+    String path, {
+    Map<String, dynamic>? query,
+  }) async {
     final r = await _wrap(() => dio.get(path, queryParameters: query));
     return (
       items: (r.data['data'] as List),
@@ -79,9 +85,17 @@ class Api {
     } on DioException catch (e) {
       final data = e.response?.data;
       if (data is Map && data['error'] != null) {
-        throw ApiError('${data['error']['code']}', data['error']['detail'], e.response?.statusCode);
+        throw ApiError(
+          '${data['error']['code']}',
+          data['error']['detail'],
+          e.response?.statusCode,
+        );
       }
-      throw ApiError('network_error', e.message ?? 'Sin conexión con el servidor', e.response?.statusCode);
+      throw ApiError(
+        'network_error',
+        e.message ?? 'Sin conexión con el servidor',
+        e.response?.statusCode,
+      );
     }
   }
 }
@@ -92,7 +106,10 @@ class _AuthInterceptor extends Interceptor {
   _AuthInterceptor(this.tokens, this.dio);
 
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+  void onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
     if (!_authPaths.any((p) => options.path.contains(p))) {
       final t = await tokens.access;
       if (t != null) options.headers['Authorization'] = 'Bearer $t';
@@ -102,13 +119,18 @@ class _AuthInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
-    final isAuthCall = _authPaths.any((p) => err.requestOptions.path.contains(p));
+    final isAuthCall = _authPaths.any(
+      (p) => err.requestOptions.path.contains(p),
+    );
     if (err.response?.statusCode == 401 && !isAuthCall) {
       final refresh = await tokens.refresh;
       if (refresh != null) {
         try {
           final bare = Dio(BaseOptions(baseUrl: apiBase()));
-          final r = await bare.post('/auth/refresh', data: {'refresh': refresh});
+          final r = await bare.post(
+            '/auth/refresh',
+            data: {'refresh': refresh},
+          );
           final data = r.data['data'];
           if (data['refresh'] != null) {
             await tokens.save(data['access'], data['refresh']);

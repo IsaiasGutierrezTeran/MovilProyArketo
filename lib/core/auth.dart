@@ -28,7 +28,10 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> login(String email, String password) async {
-    final d = await api.post('/auth/login', {'email': email, 'password': password});
+    final d = await api.post('/auth/login', {
+      'email': email,
+      'password': password,
+    });
     await tokens.save(d['access'], d['refresh']);
     user = User.fromJson(d['user']);
     notifyListeners();
@@ -50,7 +53,9 @@ class AuthService extends ChangeNotifier {
     try {
       user = User.fromJson(await api.get('/auth/me'));
       notifyListeners();
-    } catch (_) {/* mantiene el usuario actual */}
+    } catch (_) {
+      /* mantiene el usuario actual */
+    }
   }
 
   Future<void> logout() async {

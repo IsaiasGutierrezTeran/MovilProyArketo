@@ -28,14 +28,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _save() async {
-    setState(() { _saving = true; _error = null; });
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
     try {
       await context.read<AuthService>().updateProfile({
         'full_name': _name.text.trim(),
         'phone': _phone.text.trim(),
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Perfil actualizado.')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Perfil actualizado.')));
         context.pop();
       }
     } on ApiError catch (e) {
@@ -53,14 +58,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           if (_error != null)
-            Padding(padding: const EdgeInsets.only(bottom: 12), child: Text(_error!, style: const TextStyle(color: kDanger))),
-          TextField(controller: _name, decoration: const InputDecoration(labelText: 'Nombre completo')),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(_error!, style: const TextStyle(color: kDanger)),
+            ),
+          TextField(
+            controller: _name,
+            decoration: const InputDecoration(labelText: 'Nombre completo'),
+          ),
           const SizedBox(height: 12),
-          TextField(controller: _phone, keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(labelText: 'Teléfono')),
+          TextField(
+            controller: _phone,
+            keyboardType: TextInputType.phone,
+            decoration: const InputDecoration(labelText: 'Teléfono'),
+          ),
           const SizedBox(height: 18),
-          GradientButton(_saving ? 'Guardando…' : 'Guardar cambios', icon: Icons.save_outlined,
-              onPressed: _saving ? null : _save),
+          GradientButton(
+            _saving ? 'Guardando…' : 'Guardar cambios',
+            icon: Icons.save_outlined,
+            onPressed: _saving ? null : _save,
+          ),
         ],
       ),
     );

@@ -43,7 +43,10 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
     setState(() => _busy = inv.id);
     try {
       await _api.post('/invitations/${inv.id}/accept/', {});
-      setState(() { _invites.removeWhere((x) => x.id == inv.id); _busy = null; });
+      setState(() {
+        _invites.removeWhere((x) => x.id == inv.id);
+        _busy = null;
+      });
       _snack('Te uniste a "${inv.projectName}".');
     } on ApiError catch (e) {
       setState(() => _busy = null);
@@ -55,14 +58,18 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
     setState(() => _busy = inv.id);
     try {
       await _api.post('/invitations/${inv.id}/decline/', {});
-      setState(() { _invites.removeWhere((x) => x.id == inv.id); _busy = null; });
+      setState(() {
+        _invites.removeWhere((x) => x.id == inv.id);
+        _busy = null;
+      });
     } on ApiError catch (e) {
       setState(() => _busy = null);
       _snack(e.message);
     }
   }
 
-  void _snack(String m) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m)));
+  void _snack(String m) =>
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m)));
 
   @override
   Widget build(BuildContext context) {
@@ -73,10 +80,17 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
           : RefreshIndicator(
               onRefresh: _load,
               child: _invites.isEmpty
-                  ? ListView(children: const [
-                      Padding(padding: EdgeInsets.all(24),
-                          child: Text('No tienes invitaciones pendientes.', style: TextStyle(color: kMuted))),
-                    ])
+                  ? ListView(
+                      children: const [
+                        Padding(
+                          padding: EdgeInsets.all(24),
+                          child: Text(
+                            'No tienes invitaciones pendientes.',
+                            style: TextStyle(color: kMuted),
+                          ),
+                        ),
+                      ],
+                    )
                   : ListView(
                       padding: const EdgeInsets.all(16),
                       children: _invites.map((inv) {
@@ -84,24 +98,44 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
                         return Card(
                           child: Padding(
                             padding: const EdgeInsets.all(12),
-                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                              Text(inv.projectName, style: const TextStyle(fontWeight: FontWeight.w700)),
-                              const SizedBox(height: 4),
-                              Text('Te invitó ${inv.invitedByEmail ?? inv.ownerEmail} · rol ${inv.role}',
-                                  style: const TextStyle(color: kMuted, fontSize: 12)),
-                              const SizedBox(height: 10),
-                              Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                                TextButton(
-                                  onPressed: busy ? null : () => _decline(inv),
-                                  child: const Text('Rechazar'),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  inv.projectName,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
-                                const SizedBox(width: 8),
-                                FilledButton(
-                                  onPressed: busy ? null : () => _accept(inv),
-                                  child: Text(busy ? '…' : 'Aceptar'),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Te invitó ${inv.invitedByEmail ?? inv.ownerEmail} · rol ${inv.role}',
+                                  style: const TextStyle(
+                                    color: kMuted,
+                                    fontSize: 12,
+                                  ),
                                 ),
-                              ]),
-                            ]),
+                                const SizedBox(height: 10),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    TextButton(
+                                      onPressed: busy
+                                          ? null
+                                          : () => _decline(inv),
+                                      child: const Text('Rechazar'),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    FilledButton(
+                                      onPressed: busy
+                                          ? null
+                                          : () => _accept(inv),
+                                      child: Text(busy ? '…' : 'Aceptar'),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       }).toList(),

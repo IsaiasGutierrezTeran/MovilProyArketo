@@ -26,18 +26,42 @@ class _HomeShellState extends State<HomeShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: GradientBackground(child: SafeArea(child: IndexedStack(index: _index, children: _tabs))),
+      body: GradientBackground(
+        child: SafeArea(
+          child: IndexedStack(index: _index, children: _tabs),
+        ),
+      ),
       bottomNavigationBar: NavigationBar(
         backgroundColor: kSurface,
         indicatorColor: kPrimary.withValues(alpha: 0.18),
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
         destinations: const [
-          NavigationDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: 'Inicio'),
-          NavigationDestination(icon: Icon(Icons.folder_outlined), selectedIcon: Icon(Icons.folder), label: 'Proyectos'),
-          NavigationDestination(icon: Icon(Icons.auto_awesome_outlined), selectedIcon: Icon(Icons.auto_awesome), label: 'Diseño IA'),
-          NavigationDestination(icon: Icon(Icons.draw_outlined), selectedIcon: Icon(Icons.draw), label: 'Boceto'),
-          NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Perfil'),
+          NavigationDestination(
+            icon: Icon(Icons.dashboard_outlined),
+            selectedIcon: Icon(Icons.dashboard),
+            label: 'Inicio',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.folder_outlined),
+            selectedIcon: Icon(Icons.folder),
+            label: 'Proyectos',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.auto_awesome_outlined),
+            selectedIcon: Icon(Icons.auto_awesome),
+            label: 'Diseño IA',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.draw_outlined),
+            selectedIcon: Icon(Icons.draw),
+            label: 'Boceto',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Perfil',
+          ),
         ],
       ),
     );

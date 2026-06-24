@@ -35,15 +35,22 @@ class _BillingScreenState extends State<BillingScreen> {
     final p = await _api.page('/billing/plans/', query: {'page_size': 100});
     _plans = p.items.map((e) => SubscriptionPlan.fromJson(e)).toList();
     try {
-      _subscription = Subscription.fromJson(await _api.get('/billing/subscription'));
-    } catch (_) {/* sin suscripción aún */}
+      _subscription = Subscription.fromJson(
+        await _api.get('/billing/subscription'),
+      );
+    } catch (_) {
+      /* sin suscripción aún */
+    }
     if (mounted) setState(() => _loading = false);
   }
 
   /// Plan de pago -> pantalla de checkout. Plan gratis -> activación directa.
   Future<void> _choose(SubscriptionPlan plan) async {
     final price = double.tryParse(plan.price) ?? 0;
-    if (price <= 0) { await _subscribe(plan); return; }
+    if (price <= 0) {
+      await _subscribe(plan);
+      return;
+    }
     final ok = await context.push<bool>('/billing/checkout', extra: plan);
     if (ok == true && mounted) {
       await _load();
@@ -59,11 +66,21 @@ class _BillingScreenState extends State<BillingScreen> {
       final checkoutUrl = d is Map ? d['checkout_url'] as String? : null;
       if (checkoutUrl != null && checkoutUrl.isNotEmpty) {
         // Stripe real: abrir el checkout en el navegador.
-        await launchUrl(Uri.parse(checkoutUrl), mode: LaunchMode.externalApplication);
+        await launchUrl(
+          Uri.parse(checkoutUrl),
+          mode: LaunchMode.externalApplication,
+        );
       }
       await _load();
-      if (mounted) await context.read<AuthService>().refreshUser();  // refleja el nuevo plan
-      _snack(checkoutUrl != null ? 'Completa el pago en el navegador.' : 'Suscripción activada.');
+      if (mounted)
+        await context
+            .read<AuthService>()
+            .refreshUser(); // refleja el nuevo plan
+      _snack(
+        checkoutUrl != null
+            ? 'Completa el pago en el navegador.'
+            : 'Suscripción activada.',
+      );
     } on ApiError catch (e) {
       _snack(e.message);
     } finally {
@@ -82,7 +99,8 @@ class _BillingScreenState extends State<BillingScreen> {
     }
   }
 
-  void _snack(String m) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m)));
+  void _snack(String m) =>
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m)));
 
   @override
   Widget build(BuildContext context) {
@@ -95,47 +113,115 @@ class _BillingScreenState extends State<BillingScreen> {
               padding: const EdgeInsets.all(16),
               children: [
                 if (_subscription != null)
-                  Card(child: ListTile(
-                    leading: const Icon(Icons.workspace_premium_outlined, color: kPrimary2),
-                    title: Text('Plan actual: ${activeCode ?? '—'}'),
-                    subtitle: Text('Estado: ${_subscription!.status}'),
-                    trailing: _subscription!.status == 'active'
-                        ? TextButton(onPressed: _cancel, child: const Text('Cancelar', style: TextStyle(color: kDanger)))
-                        : null,
-                  )),
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(
+                        Icons.workspace_premium_outlined,
+                        color: kPrimary2,
+                      ),
+                      title: Text('Plan actual: ${activeCode ?? '—'}'),
+                      subtitle: Text('Estado: ${_subscription!.status}'),
+                      trailing: _subscription!.status == 'active'
+                          ? TextButton(
+                              onPressed: _cancel,
+                              child: const Text(
+                                'Cancelar',
+                                style: TextStyle(color: kDanger),
+                              ),
+                            )
+                          : null,
+                    ),
+                  ),
                 const SizedBox(height: 8),
-                const Text('Planes disponibles', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                const Text(
+                  'Planes disponibles',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                ),
                 const SizedBox(height: 8),
                 ..._plans.map((p) {
                   final isCurrent = p.code == activeCode;
-                  return Card(child: Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Row(children: [
-                        Expanded(child: Text(p.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700))),
-                        Text('Bs ${p.price}/${p.interval == 'year' ? 'año' : 'mes'}', style: const TextStyle(color: kPrimary2, fontWeight: FontWeight.w700)),
-                      ]),
-                      if (p.features.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        ...p.features.map((f) => Padding(
-                              padding: const EdgeInsets.only(bottom: 2),
-                              child: Row(children: [
-                                const Icon(Icons.check, size: 15, color: kSuccess),
-                                const SizedBox(width: 6),
-                                Expanded(child: Text('$f', style: const TextStyle(color: kMuted, fontSize: 13))),
-                              ]),
-                            )),
-                      ],
-                      const SizedBox(height: 12),
-                      SizedBox(width: double.infinity, child: FilledButton(
-                        onPressed: (isCurrent || _busyCode != null) ? null : () => _choose(p),
-                        child: Text(isCurrent ? 'Plan actual' : (_busyCode == p.code ? 'Procesando…' : 'Elegir plan')),
-                      )),
-                    ]),
-                  ));
+                  return Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  p.name,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                'Bs ${p.price}/${p.interval == 'year' ? 'año' : 'mes'}',
+                                style: const TextStyle(
+                                  color: kPrimary2,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (p.features.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            ...p.features.map(
+                              (f) => Padding(
+                                padding: const EdgeInsets.only(bottom: 2),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.check,
+                                      size: 15,
+                                      color: kSuccess,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        '$f',
+                                        style: const TextStyle(
+                                          color: kMuted,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: FilledButton(
+                              onPressed: (isCurrent || _busyCode != null)
+                                  ? null
+                                  : () => _choose(p),
+                              child: Text(
+                                isCurrent
+                                    ? 'Plan actual'
+                                    : (_busyCode == p.code
+                                          ? 'Procesando…'
+                                          : 'Elegir plan'),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
                 }),
                 if (_plans.isEmpty)
-                  const Padding(padding: EdgeInsets.all(16), child: Text('No hay planes disponibles.', style: TextStyle(color: kMuted))),
+                  const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text(
+                      'No hay planes disponibles.',
+                      style: TextStyle(color: kMuted),
+                    ),
+                  ),
               ],
             ),
     );

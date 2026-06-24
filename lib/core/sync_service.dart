@@ -21,11 +21,16 @@ class SyncService {
 
   Future<SyncResult> syncProjects() async {
     final since = await _storage.read(key: _key);
-    final d = await api.get('/projects/sync/', query: {if (since != null) 'since': since});
+    final d = await api.get(
+      '/projects/sync/',
+      query: {if (since != null) 'since': since},
+    );
     if (d['server_time'] != null) {
       await _storage.write(key: _key, value: '${d['server_time']}');
     }
-    final changed = ((d['changed'] ?? []) as List).map((e) => Project.fromJson(e)).toList();
+    final changed = ((d['changed'] ?? []) as List)
+        .map((e) => Project.fromJson(e))
+        .toList();
     return SyncResult(d['count'] ?? changed.length, changed);
   }
 

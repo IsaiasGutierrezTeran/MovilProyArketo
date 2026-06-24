@@ -14,13 +14,15 @@ const kWarn = Color(0xFFE0A83A);
 const kDanger = Color(0xFFF3636B);
 
 const kBrandGradient = LinearGradient(
-  begin: Alignment.topLeft, end: Alignment.bottomRight,
+  begin: Alignment.topLeft,
+  end: Alignment.bottomRight,
   colors: [kPrimary2, kPrimaryD],
 );
 
 /// Subtle page background with a top accent glow.
 const kBgGradient = LinearGradient(
-  begin: Alignment.topRight, end: Alignment.bottomLeft,
+  begin: Alignment.topRight,
+  end: Alignment.bottomLeft,
   colors: [Color(0xFF131C30), kBg],
   stops: [0.0, 0.5],
 );
@@ -30,15 +32,24 @@ ThemeData buildTheme() {
   return base.copyWith(
     scaffoldBackgroundColor: kBg,
     colorScheme: base.colorScheme.copyWith(
-      primary: kPrimary, surface: kSurface, error: kDanger,
+      primary: kPrimary,
+      surface: kSurface,
+      error: kDanger,
     ),
-    textTheme: base.textTheme.apply(bodyColor: const Color(0xFFE8EDF6), displayColor: const Color(0xFFE8EDF6)),
+    textTheme: base.textTheme.apply(
+      bodyColor: const Color(0xFFE8EDF6),
+      displayColor: const Color(0xFFE8EDF6),
+    ),
     appBarTheme: const AppBarTheme(
       backgroundColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       centerTitle: false,
-      titleTextStyle: TextStyle(fontSize: 19, fontWeight: FontWeight.w700, color: Color(0xFFE8EDF6)),
+      titleTextStyle: TextStyle(
+        fontSize: 19,
+        fontWeight: FontWeight.w700,
+        color: Color(0xFFE8EDF6),
+      ),
     ),
     cardTheme: const CardThemeData(
       color: kSurface,
@@ -54,17 +65,31 @@ ThemeData buildTheme() {
       indicatorColor: kPrimary.withValues(alpha: 0.18),
       elevation: 0,
       height: 64,
-      labelTextStyle: WidgetStateProperty.all(const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
-      iconTheme: WidgetStateProperty.resolveWith((s) =>
-          IconThemeData(color: s.contains(WidgetState.selected) ? kPrimary2 : kMuted)),
+      labelTextStyle: WidgetStateProperty.all(
+        const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+      ),
+      iconTheme: WidgetStateProperty.resolveWith(
+        (s) => IconThemeData(
+          color: s.contains(WidgetState.selected) ? kPrimary2 : kMuted,
+        ),
+      ),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: kSurface2,
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(11), borderSide: const BorderSide(color: kBorder)),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(11), borderSide: const BorderSide(color: kBorder)),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(11), borderSide: const BorderSide(color: kPrimary, width: 1.5)),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(11),
+        borderSide: const BorderSide(color: kBorder),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(11),
+        borderSide: const BorderSide(color: kBorder),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(11),
+        borderSide: const BorderSide(color: kPrimary, width: 1.5),
+      ),
       labelStyle: const TextStyle(color: kMuted),
     ),
     snackBarTheme: const SnackBarThemeData(
@@ -78,10 +103,24 @@ ThemeData buildTheme() {
 
 Color statusColor(String s) {
   switch (s) {
-    case 'active': case 'approved': case 'completed': case 'registered': return kSuccess;
-    case 'submitted': case 'observed': case 'processing': case 'pending': case 'medium': return kWarn;
-    case 'failed': case 'canceled': case 'high': case 'critical': return kDanger;
-    default: return kMuted;
+    case 'active':
+    case 'approved':
+    case 'completed':
+    case 'registered':
+      return kSuccess;
+    case 'submitted':
+    case 'observed':
+    case 'processing':
+    case 'pending':
+    case 'medium':
+      return kWarn;
+    case 'failed':
+    case 'canceled':
+    case 'high':
+    case 'critical':
+      return kDanger;
+    default:
+      return kMuted;
   }
 }
 
@@ -91,14 +130,30 @@ class BrandLogo extends StatelessWidget {
   const BrandLogo({super.key, this.size = 52});
   @override
   Widget build(BuildContext context) => Container(
-        width: size, height: size,
-        decoration: BoxDecoration(
-          gradient: kBrandGradient,
-          borderRadius: BorderRadius.circular(size * 0.27),
-          boxShadow: [BoxShadow(color: kPrimaryD.withValues(alpha: 0.45), blurRadius: size * 0.4, offset: Offset(0, size * 0.12))],
+    width: size,
+    height: size,
+    decoration: BoxDecoration(
+      gradient: kBrandGradient,
+      borderRadius: BorderRadius.circular(size * 0.27),
+      boxShadow: [
+        BoxShadow(
+          color: kPrimaryD.withValues(alpha: 0.45),
+          blurRadius: size * 0.4,
+          offset: Offset(0, size * 0.12),
         ),
-        child: Center(child: Text('A', style: TextStyle(fontSize: size * 0.5, fontWeight: FontWeight.w800, color: Colors.white))),
-      );
+      ],
+    ),
+    child: Center(
+      child: Text(
+        'A',
+        style: TextStyle(
+          fontSize: size * 0.5,
+          fontWeight: FontWeight.w800,
+          color: Colors.white,
+        ),
+      ),
+    ),
+  );
 }
 
 /// Primary CTA with the brand gradient.
@@ -121,14 +176,36 @@ class GradientButton extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: kBrandGradient,
               borderRadius: BorderRadius.circular(12),
-              boxShadow: enabled ? [BoxShadow(color: kPrimaryD.withValues(alpha: 0.35), blurRadius: 16, offset: const Offset(0, 6))] : null,
+              boxShadow: enabled
+                  ? [
+                      BoxShadow(
+                        color: kPrimaryD.withValues(alpha: 0.35),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ]
+                  : null,
             ),
             child: Container(
-              height: 50, alignment: Alignment.center,
-              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                if (icon != null) ...[Icon(icon, size: 18, color: Colors.white), const SizedBox(width: 8)],
-                Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
-              ]),
+              height: 50,
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (icon != null) ...[
+                    Icon(icon, size: 18, color: Colors.white),
+                    const SizedBox(width: 8),
+                  ],
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -140,14 +217,33 @@ class GradientButton extends StatelessWidget {
 /// Traduce códigos de estado/severidad del backend a español para mostrarlos.
 String estadoEs(String s) {
   const map = {
-    'draft': 'Borrador', 'active': 'Activo', 'archived': 'Archivado',
-    'submitted': 'Enviado', 'approved': 'Aprobado', 'observed': 'Observado', 'rejected': 'Rechazado',
-    'canceled': 'Cancelada', 'cancelled': 'Cancelada', 'incomplete': 'Pendiente de pago', 'past_due': 'Vencida',
-    'pending': 'Pendiente', 'accepted': 'Aceptada',
-    'completed': 'Completado', 'processing': 'Procesando', 'error': 'Error', 'failed': 'Falló',
-    'uploaded': 'Subido', 'processed': 'Procesado', 'valid': 'Válido', 'invalid': 'Inválido',
-    'generado': 'Generado', 'generated': 'Generado',
-    'high': 'Alta', 'medium': 'Media', 'low': 'Baja', 'critical': 'Crítica',
+    'draft': 'Borrador',
+    'active': 'Activo',
+    'archived': 'Archivado',
+    'submitted': 'Enviado',
+    'approved': 'Aprobado',
+    'observed': 'Observado',
+    'rejected': 'Rechazado',
+    'canceled': 'Cancelada',
+    'cancelled': 'Cancelada',
+    'incomplete': 'Pendiente de pago',
+    'past_due': 'Vencida',
+    'pending': 'Pendiente',
+    'accepted': 'Aceptada',
+    'completed': 'Completado',
+    'processing': 'Procesando',
+    'error': 'Error',
+    'failed': 'Falló',
+    'uploaded': 'Subido',
+    'processed': 'Procesado',
+    'valid': 'Válido',
+    'invalid': 'Inválido',
+    'generado': 'Generado',
+    'generated': 'Generado',
+    'high': 'Alta',
+    'medium': 'Media',
+    'low': 'Baja',
+    'critical': 'Crítica',
   };
   return map[s.toLowerCase()] ?? s;
 }
@@ -165,7 +261,10 @@ class StatusChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(99),
         border: Border.all(color: c.withValues(alpha: 0.4)),
       ),
-      child: Text(estadoEs(label), style: TextStyle(color: c, fontSize: 11, fontWeight: FontWeight.w700)),
+      child: Text(
+        estadoEs(label),
+        style: TextStyle(color: c, fontSize: 11, fontWeight: FontWeight.w700),
+      ),
     );
   }
 }
@@ -175,6 +274,8 @@ class GradientBackground extends StatelessWidget {
   final Widget child;
   const GradientBackground({super.key, required this.child});
   @override
-  Widget build(BuildContext context) =>
-      DecoratedBox(decoration: const BoxDecoration(gradient: kBgGradient), child: child);
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: const BoxDecoration(gradient: kBgGradient),
+    child: child,
+  );
 }

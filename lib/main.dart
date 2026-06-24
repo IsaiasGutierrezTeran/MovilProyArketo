@@ -25,13 +25,15 @@ void main() {
   final api = Api(tokens);
   final auth = AuthService(api, tokens)..bootstrap();
 
-  runApp(MultiProvider(
-    providers: [
-      Provider<Api>.value(value: api),
-      ChangeNotifierProvider<AuthService>.value(value: auth),
-    ],
-    child: const ArketoApp(),
-  ));
+  runApp(
+    MultiProvider(
+      providers: [
+        Provider<Api>.value(value: api),
+        ChangeNotifierProvider<AuthService>.value(value: auth),
+      ],
+      child: const ArketoApp(),
+    ),
+  );
 }
 
 class ArketoApp extends StatefulWidget {
@@ -65,15 +67,19 @@ class _ArketoAppState extends State<ArketoApp> {
         GoRoute(path: '/', builder: (_, __) => const HomeShell()),
         GoRoute(
           path: '/projects/:id',
-          builder: (_, s) => ProjectDetailScreen(id: int.parse(s.pathParameters['id']!)),
+          builder: (_, s) =>
+              ProjectDetailScreen(id: int.parse(s.pathParameters['id']!)),
         ),
         GoRoute(
           path: '/projects/:id/budget',
-          builder: (_, s) => BudgetScreen(projectId: int.parse(s.pathParameters['id']!)),
+          builder: (_, s) =>
+              BudgetScreen(projectId: int.parse(s.pathParameters['id']!)),
         ),
         GoRoute(
           path: '/projects/:id/collab',
-          builder: (_, s) => CollaborationScreen(projectId: int.parse(s.pathParameters['id']!)),
+          builder: (_, s) => CollaborationScreen(
+            projectId: int.parse(s.pathParameters['id']!),
+          ),
         ),
         GoRoute(path: '/billing', builder: (_, __) => const BillingScreen()),
         GoRoute(
@@ -82,11 +88,19 @@ class _ArketoAppState extends State<ArketoApp> {
             final plan = s.extra;
             return plan is SubscriptionPlan
                 ? CheckoutScreen(plan: plan)
-                : const Scaffold(body: Center(child: Text('Plan no especificado')));
+                : const Scaffold(
+                    body: Center(child: Text('Plan no especificado')),
+                  );
           },
         ),
-        GoRoute(path: '/invitations', builder: (_, __) => const InvitationsScreen()),
-        GoRoute(path: '/profile/edit', builder: (_, __) => const EditProfileScreen()),
+        GoRoute(
+          path: '/invitations',
+          builder: (_, __) => const InvitationsScreen(),
+        ),
+        GoRoute(
+          path: '/profile/edit',
+          builder: (_, __) => const EditProfileScreen(),
+        ),
       ],
     );
   }
@@ -106,6 +120,8 @@ class _Splash extends StatelessWidget {
   const _Splash();
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: CircularProgressIndicator(color: kPrimary)));
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator(color: kPrimary)),
+    );
   }
 }
